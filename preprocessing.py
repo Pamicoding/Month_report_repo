@@ -1,3 +1,4 @@
+#%%
 import obspy
 from obspy import read
 import os
@@ -35,7 +36,7 @@ for subdirectory in subdirectories:
 
     # Use glob to find all files with a specific extension (e.g., .mseed) in the subdirectory.
     # data_files = glob.glob(sub_subdirectory_path) # no need to use glob
-        data_files = os.listdir(sub_subdirectory_path)
+        data_files = glob.glob(os.path.join(sub_subdirectory_path, '*EP*'))
 
     # Loop through each data file in the subdirectory and process them.
         for data_file in data_files:
@@ -56,3 +57,4 @@ for subdirectory in subdirectories:
             st.write(output_file, format='SAC')
 
 print("Preprocessing and saving completed for all directories.")
+# %%
