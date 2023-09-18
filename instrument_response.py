@@ -48,3 +48,8 @@ for name in station_name:
             # Save the preprocessed data in the output directory
             processed_file = os.path.join(layer_2, os.path.basename(data).replace('.sac', '_processed.sac'))
             st.write(processed_file, format='SAC')
+
+'''
+----THOUGHT----
+1. maybe we don't need that much directory(for N, E, and Z), comparing to ILAN2022 to see if it's reasonable.
+'''
