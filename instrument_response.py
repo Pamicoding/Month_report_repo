@@ -1,4 +1,3 @@
-#%%
 import obspy
 from obspy import read, UTCDateTime
 import os
@@ -55,10 +54,10 @@ for name in station_name:
             st.write(processed_file, format='SAC')
 
 
-#%%
+
 # Check the file
-check_st = read('/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190')
-check_st.plot()
+#check_st = read('/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190')
+#check_st.plot()
 
 '''
 ----Memo----
@@ -66,8 +65,6 @@ check_st.plot()
    --> reasonable! we can use glob.glob to find '*EPE*' for example.
 2. instrument response same
    --> so we do not need to iterate the pzs file
-3. some info for removing instrument response
-   a. attach_paz()
-
+3. some info for removing instrument response (see quicknote)
 '''
-# %%
+
