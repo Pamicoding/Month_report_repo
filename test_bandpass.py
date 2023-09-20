@@ -1,36 +1,37 @@
-#%%
+# %%
+# spectrogram test
 from obspy.core import read, UTCDateTime
 import os
 import glob
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+path = '/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190'
+st = read(path)
+st_copy = st.copy()
+st_freq = st_copy.filter("bandpass", freqmin=0.1, freqmax=10)
+st_time = st_freq[0].times() # Times
+st_data = st_freq[0].data # the signal
 
-# Variable: directory location
-parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
-output_dir = '/raid1/SM_data/archive/2023/TW/test'
-os.makedirs(output_dir, exist_ok=True)
+fig = plt.figure(layout= "constrained")
+gs = gridspec.GridSpec(2, 3, figure=fig, height_ratios=[1, 1], width_ratios=[1, 1, 0.05])
+ax1 = plt.subplot(gs[0, :-1])
+ax2 = plt.subplot(gs[1, :-1],sharex=ax1)
+cax = plt.subplot(gs[1, -1]) 
+#fig, (ax1, ax2) = plt.subplots(nrows = 2, sharex = True)
+ax1.plot(st_time, st_data)
+ax1.set_ylabel('Signal')
 
-# create the list for iterating
-station_list = os.listdir(parent_dir) # station
-#azimuth_list = ['EPE', 'EPN', 'EPZ'] # azimuth (for for loop)
-azimuth_list = os.listdir(os.path.join(parent_dir, 'SM01'))
+# spectrogram setting
+Fs = 100
+NFFT = 1024
+ax2.specgram(st_data, NFFT=NFFT, Fs=Fs)
+ax2.set_xlabel('Times')
+ax2.set_ylabel('Frequency (Hz)')
 
-# read the 239 (day of year) to test the bandpass filter!
-for station in station_list:
-    station_dir = os.path.join(parent_dir,station)
-    for azimuth in azimuth_list:
-        sac_data = glob.glob(os.path.join(station_dir,f"*{azimuth}*"))
-        for data in sac_data:
-            st = read(data)
-            #print(st)
-            #st.taper(type='hann', max_percentage=0.05) 
-            # the command line above (taper) is needed when we use trim(). However, the result shows no differnce, it seems like we don't have to use it
-            st.filter("bandpass", freqmin=0.1, freqmax=10)
-            st.plot()
+# Create the colorbar for the spectrogram
+cbar = plt.colorbar(ax2.images[0], cax=cax, format='%+3.0f')
 
-            # Save the preprocessed data in the output directory
-            #processed_file = os.path.join(output_dir, os.path.basename(data).replace('.sac', '_bandpass.sac'))
-            #st.write(processed_file, format='SAC')            
-
-print('done')
-
-
+# Set the label for the colorbar
+cbar.set_label('Power/Frequency (dB/Hz)')
+plt.show()
 # %%

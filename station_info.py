@@ -24,3 +24,5 @@ for station in station_list:
 Info above did not contain the longitude and latitude data,
 opening the PZs file directly to acquire the info.
 '''
+
+# %%
