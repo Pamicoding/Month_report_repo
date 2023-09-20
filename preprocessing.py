@@ -42,19 +42,20 @@ for subdirectory in subdirectories:
         for data_file in data_files:
             # Read the seismic data file into a Stream object.
             st = read(data_file)
+            st_copy = st.copy() # adding a copy to avoid covering the data
 
             # Merge traces within the Stream if there is more than one trace.
-            if len(st) > 1:
-                st = st.merge(method=1, fill_value=0)
+            if len(st_copy) > 1:
+                st_copy = st_copy.merge(method=1, fill_value=0)
 
             # Preprocess the Stream.
-            st.detrend('demean')
-            st.detrend('linear')
-            st.taper(type='hann', max_percentage=0.05)
+            st_copy.detrend('demean')
+            st_copy.detrend('linear')
+            st_copy.taper(type='hann', max_percentage=0.05)
 
             # Define the output file path and save the preprocessed Stream.
             output_file = os.path.join(output_directory, os.path.basename(data_file))
-            st.write(output_file, format='SAC')
+            st_copy.write(output_file, format='SAC')
 
 print("Preprocessing and saving completed for all directories.")
 # %%

@@ -37,7 +37,7 @@ for name in station_name:
         sac_data_dir = os.path.join(parent_dir, name, azi) # ./preprocessing/SM01/EPZ.D
         sac_data = glob.glob(os.path.join(sac_data_dir, '*190*')) # Catch the file match the path ./preprocessing/SM01/EPZ.D/*EP*
         for data in sac_data:
-            st = read(data)
+            st = read(data) # copy() is no need to use here due to the file is already copy in last step.
             st.trim(starttime = trim_starttime, endtime = trim_endtime)
             
             #attach_paz(st[0], pzs_path)
