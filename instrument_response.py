@@ -61,9 +61,9 @@ for name in station_name:
         for day in day_range:
             day_f = format_number(day)
             day_path = f"2023.{day_f}"
-            seach_pattern = os.path.join(sac_data_dir, f'*{day_path}*')
+            search_pattern = os.path.join(sac_data_dir, f'*{day_path}*')
             try: 
-               sac_data = glob.glob(seach_pattern) 
+               sac_data = glob.glob(search_pattern) 
             except Exception as e:
                 logging.error(f"Error while searching for files in station {name}, azimuth {azi}: {str(e)}")
                 continue  # Continue with the next azimuth
