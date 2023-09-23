@@ -20,7 +20,7 @@ def scientific_formatter(value, pos): # parameter "pos" is a expectation of Matp
 path = '/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190'
 st = read(path)
 st_copy = st.copy()
-st_freq = st_copy.filter("bandpass", freqmin=0.1, freqmax=10)
+st_freq = st_copy.filter("bandpass", freqmin=0.01, freqmax=45)
 st_time = st_freq[0].times() # Times
 st_data = st_freq[0].data # the signal
 
@@ -40,8 +40,9 @@ ax1.set_ylabel('Signal', fontsize=12)
 
 
 # Create the spectrogram
+NFFT = 256
 cmap = plt.get_cmap('turbo')
-im = ax2.specgram(st_freq[0].data, Fs=st_freq[0].stats.sampling_rate, cmap=cmap)
+im = ax2.specgram(st_freq[0].data, Fs=st_freq[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-300, vmax=-120)
 ''' 
 if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
 '''
@@ -52,7 +53,9 @@ cbar.set_label('Amplitude (dB)')
 # Set the title, label
 ax2.set_xlabel('Times (s)', fontsize = 12)
 ax2.set_ylabel('Frequency (Hz)', fontsize = 12)
+ax2.set_yscale('log')
 ax2.set_xlim(0,600)
+ax2.set_ylim(0.05, 50)
 
 # Customize the y-axis tick labels to be in scientific notation
 ax2.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))

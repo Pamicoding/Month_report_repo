@@ -83,36 +83,40 @@ for station in station_list:
 timesets_df = pd.DataFrame(timeset.items(), columns=['station', 'timeset'])
 datasets_df = pd.DataFrame(dataset.items(), columns=['station', 'dataset'])
 merge_df = pd.merge(timesets_df, datasets_df, on='station')
-merge_df.to_csv(f'{month}_wholedata.csv', index=False) # observe the data structure directly!
+
+# Specify the file name you want to create
+output_file_name = f'{month}_wholedata.csv'
+
+# Check if the file already exists
+if not os.path.exists(output_file_name):
+    # Save the dataframe to the CSV file
+    merge_df.to_csv(output_file_name, index=False)
+    logging.info(f"The CSV file '{output_file_name}' has been created.")
+else:
+    logging.info(f"The CSV file '{output_file_name}' already exists. Skipping file creation.")
+
 #%%
 # plotting the monthly spectrogram
 for name in station_list:
     y = dataset[name] # acquire the signal from dictionary
     x = timeset[name] # acquire the time from dictionary
-    '''
-    Understanding the time structure is needed, I remember that our sampling rate is 100,
-    maybe we can downsampling to 1, which means a data points per second.
-    Then, we need to set x coordinate as a 'date', not the form of second, 
-    maybe we can def a function that divide 86400 to get a date. 
-    '''
+'''
+The ideal aggreagation of time
+In my project, I'm trying to create a monthly spectrogram through the earthquack data. In our dataWe select the specfic time window (day of year), acquiring the  and I think we should append the index while 
+acquiring the data. The reason to annotate the index is I want to classify different day before I merge 
+all times together.
+'''
 
 # set the axes
 fig = plt.figure(figsize=(6,6))
-gs = gridspec.GridSpec(2, 3, figure=fig, height_ratios=[1, 2.5], width_ratios=[1, 1, 0.05])
-ax1 = plt.subplot(gs[0, :-1])
-ax2 = plt.subplot(gs[1, :-1],sharex=ax1)
-cax = plt.subplot(gs[1, -1]) 
+gs = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1, 0.05])
+ax = plt.subplot(gs[0, 0])
+cax = plt.subplot(gs[0, 1]) 
 
-# ax1
-ax1.plot(st_time, st_data, linewidth = 0.5, color='k', alpha = 0.6)
-ax1.grid(visible=True, color='lightgray')
-ax1.set_title('SM01' + str(st_freq[0].stats.starttime), fontsize = 12)
-ax1.set_ylabel('Signal', fontsize=12)
-
-
-# Create the spectrogram
+# Create the spectrogram on ax
+NFFT = 256
 cmap = plt.get_cmap('turbo')
-im = ax2.specgram(st_freq[0].data, Fs=st_freq[0].stats.sampling_rate, cmap=cmap)
+im = ax.specgram(st_freq[0].data, Fs=st_freq[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-300, vmax=-120)
 ''' 
 if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
 '''
