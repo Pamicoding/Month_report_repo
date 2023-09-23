@@ -502,3 +502,4 @@ INFO:root:Now we are in the 242 day of year
 ERROR:root:Error processing thorugh the 242 day of year: list index out of range
 INFO:root:Now we are in the 243 day of year
 ERROR:root:Error processing thorugh the 243 day of year: list index out of range
+INFO:root:The CSV file 'August_wholedata.csv' already exists. Skipping file creation.
