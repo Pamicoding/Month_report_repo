@@ -1,5 +1,5 @@
 # %%
-from obspy import read
+from obspy import read, Stream
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors  # for setting colorbar
 import numpy as np
@@ -41,19 +41,12 @@ month = 'August'
 # directory setting
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
-
-# data aggregation, using a dictionary
-timeset = {}
-dataset = {}
-
+merged_stream = {}
 # tidy up the data
 for station in station_list:
     logging.info(f"Now we are in station:{station}")
     station_dir = os.path.join(parent_dir, station) # ./remove_resp/SM01
-
-    # initialize lists for time and signal data
-    station_timeset=[]
-    station_dataset=[]
+    current_stream = Stream() # initial the stream when changing the station
 
     for day in day_range:
         logging.info(f"Now we are in the {day} day of year")
@@ -65,58 +58,34 @@ for station in station_list:
         try:
             st = read(sac_data[0]) # whole day stream
             st_freq = st.filter("bandpass", freqmin=0.1, freqmax=10) # filter
-            st_time = st_freq[0].times() # get Times
-            st_data = st_freq[0].data # the signal
-            station_timeset.append(st_time)
-            station_dataset.append(st_data)
-            logging.info(f"the data of {day} day of year is pass, thank god")
+            '''
+            from now on, we are try to extract the trace from each stream (or we can directly merge the stream?)
+            '''
+            current_stream += st_freq
+
+
+            logging.info(f"the data of {day} day of year is merging, thank god")
         except Exception as e:
             # handle the exception and log it
             logging.error(f"Error processing thorugh the {day} day of year: {str(e)}")
+    current_stream = current_stream.merge()
+    logging.info(f"merging complete")
+    merged_stream[f"st_all_{station}"] = current_stream
+    logging.info(f"the {station} stream is update in dictionary!")
 
-
-    # store the data into dictionary    
-    timeset[station] = np.concatenate(station_timeset)
-    dataset[station] = np.concatenate(station_dataset)
-
-# create a df and merge them into a df and save it as .csv
-timesets_df = pd.DataFrame(timeset.items(), columns=['station', 'timeset'])
-datasets_df = pd.DataFrame(dataset.items(), columns=['station', 'dataset'])
-merge_df = pd.merge(timesets_df, datasets_df, on='station')
-
-# Specify the file name you want to create
-output_file_name = f'{month}_wholedata.csv'
-
-# Check if the file already exists
-if not os.path.exists(output_file_name):
-    # Save the dataframe to the CSV file
-    merge_df.to_csv(output_file_name, index=False)
-    logging.info(f"The CSV file '{output_file_name}' has been created.")
-else:
-    logging.info(f"The CSV file '{output_file_name}' already exists. Skipping file creation.")
 
 #%%
 # plotting the monthly spectrogram
-for name in station_list:
-    y = dataset[name] # acquire the signal from dictionary
-    x = timeset[name] # acquire the time from dictionary
-'''
-The ideal aggreagation of time
-In my project, I'm trying to create a monthly spectrogram through the earthquack data. In our dataWe select the specfic time window (day of year), acquiring the  and I think we should append the index while 
-acquiring the data. The reason to annotate the index is I want to classify different day before I merge 
-all times together.
-'''
-
 # set the axes
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(8,6))
 gs = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1, 0.05])
 ax = plt.subplot(gs[0, 0])
 cax = plt.subplot(gs[0, 1]) 
-
+st_sm01 = merged_stream["st_all_SM01"]
 # Create the spectrogram on ax
 NFFT = 256
 cmap = plt.get_cmap('turbo')
-im = ax.specgram(st_freq[0].data, Fs=st_freq[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-300, vmax=-120)
+im = ax.specgram(st_sm01[0].data, Fs=st_sm01[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-300, vmax=-120)
 ''' 
 if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
 '''
