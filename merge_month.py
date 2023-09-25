@@ -1,18 +1,11 @@
-#%%
-# Module
-import obspy
+# for transform the daily data into a monthly data by using merge() and save as a dictionary
+# module
 from obspy import read, Stream
-from obspy.io.xseed import Parser
-from obspy.signal import PPSD
-from obspy.imaging.cm import pqlx
-import logging
 import numpy as np
-import os
+import os 
 import glob
-
-# Logging system
-logging.basicConfig(filename='psd.log', level=logging.INFO, filemode='w')  # Create a log file
-
+import logging
+import pickle # for saving the dictionary
 # def
 # convert 1 to 001 for searching
 def format_number(number):
@@ -22,25 +15,28 @@ def format_number(number):
     formatted_number = '0' * num_zeros + number_str # Add the leading zeros and return the formatted number as a string
     return formatted_number 
 
+# Initialize the logging system
+logging.basicConfig(filename='test.log', level=logging.INFO, filemode='w')  # Create a log file
+
 # variables
 day_range = np.arange(213, 244, 1)
 month = 'August'
 
 # directory setting
-parent_dir = '/raid1/SM_data/archive/2023/TW/preprocessing/'
+parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
-merged_stream = {} # THIS MERGE STREAM DID NOT REMOVE INSTRUMENT RESPONSE!!
+merged_stream = {}
 # tidy up the data
 for station in station_list:
     logging.info(f"Now we are in station:{station}")
-    station_dir = os.path.join(parent_dir, station) # ./preprocessing/SM01
+    station_dir = os.path.join(parent_dir, station) # ./remove_resp/SM01
     current_stream = Stream() # initial the stream when changing the station
 
     for day in day_range:
         logging.info(f"Now we are in the {day} day of year")
         day_trans = format_number(day)
         day_file = f"EPZ.D.2023.{day_trans}"
-        day_path = os.path.join(station_dir, 'EPZ.D', f'*{day_file}*') # ./preprocessing/SM01/EPZ.D/*EPZ.D.2023.001*
+        day_path = os.path.join(station_dir, f'*{day_file}*') # ./remove_resp/SM01/*EPZ.D.2023.001*
         sac_data = glob.glob(day_path)
 
         try:
@@ -62,18 +58,8 @@ for station in station_list:
     merged_stream[f"st_all_{station}"] = current_stream
     logging.info(f"the {station} stream is update in dictionary!")
 
-#%%
-from obspy.imaging.cm import pqlx
-# we will acquire a dictionary contain the whole month stream for each station.
-st_sm01 = merged_stream["st_all_SM01"]
-
-paz = {'poles': [-1.978100e+01+2.020270e+01j, -1.978100e+01-2.020270e+01j],
-            'zeros': [0j, 0j],
-            'gain': 546976,
-            'sensitivity': 546976.0}
-
-ppsd = PPSD(st_sm01[0].stats, paz)
-ppsd.add(st_sm01)
-ppsd.plot(filename = 'psd.png', cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
-logging.info(f"we here!")
-# %%
+# save this merge_stream as dictionary
+file_name = f"{month}_mergedata"
+file_path = os.path.join('/home/patrick/Work/Month_report_repo/','filename')
+with open(file_path, 'wb') as file:
+    pickle.dump(merged_stream, file)
