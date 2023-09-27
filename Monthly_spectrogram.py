@@ -105,7 +105,6 @@ ax.set_ylabel('Frequency (Hz)', fontsize = 20,labelpad=10)
 
 # Customize the y-axis tick labels to be in scientific notation
 ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
-#ax.set_yscale('log')
 ax.set_ylim(0.5, 50)
 # about setting the x_label as time
 start_time = st_sm01[0].stats.starttime
@@ -123,8 +122,11 @@ ax.set_xticks(tick_positions)
 ax.set_xticklabels(time_label, rotation=45, ha = "right")
 
 #plt.savefig('sm01_august_spectrogram.png')
+
+#ax.set_yscale('log')
+#ax.grid(False)
 plt.show()
 logging.info(f"save your tears for another day")
-# 
+
 
 # %%
