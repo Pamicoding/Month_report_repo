@@ -45,11 +45,7 @@ for station in station_list:
 
         try:
             st = read(sac_data[0]) # whole day stream
-            st_freq = st.filter("bandpass", freqmin=0.1, freqmax=10) # filter
-            '''
-            from now on, we are try to extract the trace from each stream (or we can directly merge the stream?)
-            '''
-            current_stream += st_freq
+            current_stream += st
             logging.info(f"the data of {day} day of year is merging, thank god")
         except Exception as e:
             # handle the exception and log it
@@ -62,7 +58,7 @@ for station in station_list:
     merged_stream[f"st_all_{station}"] = current_stream
     logging.info(f"the {station} stream is update in dictionary!")
 
-#%%
+
 from obspy.imaging.cm import pqlx
 # we will acquire a dictionary contain the whole month stream for each station.
 st_sm01 = merged_stream["st_all_SM01"]
