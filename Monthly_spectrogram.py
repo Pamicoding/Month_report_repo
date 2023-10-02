@@ -44,6 +44,7 @@ month = 'August'
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
 merged_stream = {}
+'''
 # tidy up the data
 for station in station_list:
     logging.info(f"Now we are in station:{station}")
@@ -69,14 +70,42 @@ for station in station_list:
 
     current_stream = current_stream.merge()
     logging.info(f"merging complete")
-    '''
-    adding the plotting block here to loop
-    '''
+    
+    #adding the plotting block here to loop
+
     merged_stream[f"st_all_{station}"] = current_stream
     logging.info(f"the {station} stream is update in dictionary!")
+'''
+# test code below
+test_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/SM09'
+test_stream = Stream()
+for day in day_range:
+    logging.info(f"Now we are in the {day} day of year")
+    day_trans = format_number(day)
+    day_file = f"EPZ.D.2023.{day_trans}"
+    day_path = os.path.join(test_dir, f'*{day_file}*') # ./remove_resp/SM09/*EPZ.D.2023.001*
+    sac_data = glob.glob(day_path)
 
+    try:
+        st = read(sac_data[0]) # whole day stream
+        st_freq = st.filter("bandpass", freqmin=0.1, freqmax=10) # filter
+        logging.info(f"{st_freq}")
+        test_stream += st_freq
+        logging.info(f"the data of {day} day of year is merging, thank god")
+    except Exception as e:
+        # handle the exception and log it
+        logging.error(f"Error processing thorugh the {day} day of year: {str(e)}")
+
+    test_stream = test_stream.merge(fill_value='interpolate')
+    logging.info(f"merging complete")
+    
+    #adding the plotting block here to loop
+
+    merged_stream[f"st_all_SM09"] = test_stream
+    logging.info(f"the SM09 stream is update in dictionary!")
+# test code above
 #%%
-st_sm01 = merged_stream["st_all_SM01"]
+st_sm01 = merged_stream["st_all_SM09"]
 # plotting the monthly spectrogram
 # set the axes
 
@@ -86,7 +115,7 @@ from datetime import datetime, timedelta
 NFFT = 1024*8
 num_overlap = 512*8
 cmap = plt.get_cmap('turbo')
-ax.specgram(st_sm01[0].data, Fs=st_sm01[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-350, vmax=-120)
+ax.specgram(st_sm01[0].data, Fs=st_sm01[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-300, vmax=-100)
 ''' 
 if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
 '''
@@ -123,7 +152,7 @@ ax.set_xticklabels(time_label, rotation=45, ha = "right")
 
 #plt.savefig('sm01_august_spectrogram.png')
 
-#ax.set_yscale('log')
+ax.set_yscale('symlog')
 #ax.grid(False)
 plt.show()
 logging.info(f"save your tears for another day")
