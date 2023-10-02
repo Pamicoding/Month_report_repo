@@ -30,12 +30,12 @@ def format_number(number):
     return formatted_number # we will transfer the 1 to 001
 
 # Initialize the logging system
-logging.basicConfig(filename='processing.log', level=logging.INFO, filemode='w')  # Create a log file
+logging.basicConfig(filename='response.log', level=logging.INFO, filemode='w')  # Create a log file
 # filemode='w' is to write the logging
 # variable
 station_name = os.listdir(parent_dir)
 azimuth_dir = os.listdir(os.path.join(parent_dir, 'SM01'))
-day_range = np.arange(213, 244, 1)
+day_range = np.arange(244, 274, 1)
 
 # Create an output directory for processed data
 os.makedirs(output_dir, exist_ok=True)
@@ -73,10 +73,10 @@ for name in station_name:
                   #st.trim(starttime = trim_starttime, endtime = trim_endtime)
                   paz_1hz = corn_freq_2_paz(corner_freq, damp=damping)
                   paz_sts2 = {'poles': [-1.978100e+01+2.020270e+01j, -1.978100e+01-2.020270e+01j],
-                  'zeros': [0j, 0j],
-                  'gain': 546976,
+                  'zeros': [0j, 0j, 0j],
+                  'gain': 27.7,
                   'sensitivity': 546976.0}
-                  st.simulate(paz_remove=paz_sts2, paz_simulate=paz_1hz)
+                  st.simulate(paz_remove=paz_sts2, paz_simulate=paz_1hz, pre_filt=pre_filt) # we add the pre_filt to apply a bandpass
                   #st.simulate(paz_remove=paz_1hz, pre_filt=pre_filt) # old one
                   # Save the preprocessed data in the output directory
                   processed_file = os.path.join(layer_1, os.path.basename(data).replace('.sac', '_processed.sac'))
@@ -87,7 +87,7 @@ for name in station_name:
                    # handle the exception and log it
                    logging.error(f"Error processing {data}: {str(e)}")
 
-
+logging.info('done')
 
 # Check the file
 #check_st = read('/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190')

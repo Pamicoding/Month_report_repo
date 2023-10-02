@@ -20,6 +20,7 @@ def scientific_formatter(value, pos): # parameter "pos" is a expectation of Matp
 path = '/raid1/SM_data/archive/2023/TW/remove_resp/SM01/TW.SM01.00.EPZ.D.2023.190'
 st = read(path)
 st_copy = st.copy()
+st_copy.taper(type='hann', max_percentage=0.05)
 st_freq = st_copy.filter("bandpass", freqmin=0.01, freqmax=45)
 st_time = st_freq[0].times() # Times
 st_data = st_freq[0].data # the signal

@@ -23,53 +23,75 @@ def format_number(number):
     return formatted_number 
 
 # variables
-day_range = np.arange(213, 244, 1)
-month = 'August'
+day_range = np.arange(244, 274, 1)
+month = 'September'
 
 # directory setting
-parent_dir = '/raid1/SM_data/archive/2023/TW/preprocessing/'
-station_list = os.listdir(parent_dir)
 merged_stream = {} # THIS MERGE STREAM DID NOT REMOVE INSTRUMENT RESPONSE!!
-# tidy up the data
+
+# Define the parent directory containing subdirectories with seismic data.
+parent_directory = '/raid1/SM_data/archive/2023/TW'
+
+
+# List of subdirectories within the parent directory.
+station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40']
+# Loop through each subdirectory.
 for station in station_list:
     logging.info(f"Now we are in station:{station}")
-    station_dir = os.path.join(parent_dir, station) # ./preprocessing/SM01
+    subdirectory_path = os.path.join(parent_directory, station, 'EPZ.D') # ./TW/SM01/EPZ.D
     current_stream = Stream() # initial the stream when changing the station
-
     for day in day_range:
         logging.info(f"Now we are in the {day} day of year")
         day_trans = format_number(day)
         day_file = f"EPZ.D.2023.{day_trans}"
-        day_path = os.path.join(station_dir, 'EPZ.D', f'*{day_file}*') # ./preprocessing/SM01/EPZ.D/*EPZ.D.2023.001*
+        day_path = os.path.join(subdirectory_path, f'*{day_file}*') # ./TW/SM01/EPZ.D/*EPZ.D.2023.001*
         sac_data = glob.glob(day_path)
-
         try:
-            st = read(sac_data[0]) # whole day stream
-            current_stream += st
+            # Read the seismic data file into a Stream object.
+            st_1 = read(sac_data[0])
+            st_copy = st_1.copy() # adding a copy to avoid covering the data
+            
+            # Merge traces within the Stream if there is more than one trace.
+            if len(st_copy) > 1:
+                st_copy = st_copy.merge(method=1, fill_value='interpolate')
+
+            current_stream += st_copy
             logging.info(f"the data of {day} day of year is merging, thank god")
+
         except Exception as e:
             # handle the exception and log it
             logging.error(f"Error processing thorugh the {day} day of year: {str(e)}")
-    current_stream = current_stream.merge()
+    current_stream = current_stream.merge(fill_value='interpolate')
     logging.info(f"merging complete")
-    '''
-    adding the plotting block here to loop
-    '''
     merged_stream[f"st_all_{station}"] = current_stream
     logging.info(f"the {station} stream is update in dictionary!")
-
-
-from obspy.imaging.cm import pqlx
+#%%
 # we will acquire a dictionary contain the whole month stream for each station.
-st_sm01 = merged_stream["st_all_SM01"]
+st_sm01 = merged_stream["st_all_SM40"]
 
-paz = {'poles': [-1.978100e+01+2.020270e+01j, -1.978100e+01-2.020270e+01j],
-            'zeros': [0j, 0j],
-            'gain': 546976,
-            'sensitivity': 546976.0}
+paz = {  'poles': [-1.978100e+01+2.020270e+01j, -1.978100e+01-2.020270e+01j],
+            'zeros': [0j, 0j, 0j],
+            'sensitivity': 546976,
+            'gain': 27.7}
 
 ppsd = PPSD(st_sm01[0].stats, paz)
 ppsd.add(st_sm01)
-ppsd.plot(filename = 'psd.png', cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
+ppsd.plot( cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
 logging.info(f"we here!")
 # %%
+# loop version (haven't attest)
+for station in station_list:
+    st_plot = merged_stream[f"st_all_{station}"]
+    paz = {  'poles': [-1.978100e+01+2.020270e+01j, -1.978100e+01-2.020270e+01j],
+            'zeros': [0j, 0j, 0j],
+            'sensitivity': 546976,
+            'gain': 27.7}
+    try:
+        ppsd = PPSD(st_plot[0].stats, paz)
+        ppsd.add(st_plot)
+        ppsd.plot(filename= f"{station}_psd.png", cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
+        logging.info(f"the psd of {station} done")
+    except IndexError as e: # to exclude the condition that the station did not acquire the data.
+        logging.error(f"The error from {station}:{e}")
+
+logging.info('done')
