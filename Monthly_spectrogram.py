@@ -37,14 +37,14 @@ def format_number(number):
     return formatted_number 
 
 # variables
-day_range = np.arange(213, 244, 1)
-month = 'August'
-
+day_range = np.arange(244, 274, 1)
+month = 'September'
+days = 30
 # directory setting
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
 merged_stream = {}
-'''
+
 # tidy up the data
 for station in station_list:
     logging.info(f"Now we are in station:{station}")
@@ -68,15 +68,16 @@ for station in station_list:
             # handle the exception and log it
             logging.error(f"Error processing thorugh the {day} day of year: {str(e)}")
 
-    current_stream = current_stream.merge()
+    current_stream = current_stream.merge(fill_value='interpolate')
     logging.info(f"merging complete")
     
     #adding the plotting block here to loop
 
     merged_stream[f"st_all_{station}"] = current_stream
     logging.info(f"the {station} stream is update in dictionary!")
-'''
+
 # test code below
+'''
 test_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/SM09'
 test_stream = Stream()
 for day in day_range:
@@ -104,12 +105,13 @@ for day in day_range:
     merged_stream[f"st_all_SM09"] = test_stream
     logging.info(f"the SM09 stream is update in dictionary!")
 # test code above
+'''
 #%%
-st_sm01 = merged_stream["st_all_SM09"]
+st_sm01 = merged_stream["st_all_SM02"]
 # plotting the monthly spectrogram
 # set the axes
 
-fig, ax = plt.subplots(figsize=(10,6))
+fig, ax = plt.subplots(figsize=(14,10))
 from datetime import datetime, timedelta
 # Create the spectrogram on ax
 NFFT = 1024*8
@@ -137,7 +139,7 @@ ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
 ax.set_ylim(0.5, 50)
 # about setting the x_label as time
 start_time = st_sm01[0].stats.starttime
-end_time = start_time + timedelta(days=31)
+end_time = start_time + timedelta(days=days)
 tick_positions = np.arange(0, end_time - start_time, 86400)
 
 time_label = []
@@ -152,8 +154,9 @@ ax.set_xticklabels(time_label, rotation=45, ha = "right")
 
 #plt.savefig('sm01_august_spectrogram.png')
 
-ax.set_yscale('symlog')
-#ax.grid(False)
+ax.set_yscale('log')
+#ax.grid(False))
+
 plt.show()
 logging.info(f"save your tears for another day")
 

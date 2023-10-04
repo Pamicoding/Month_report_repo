@@ -19,8 +19,8 @@ station_list = os.listdir(parent_dir)
 evt_lon = 121.83  
 evt_lat = 24.42 
 evt_point = (evt_lat, evt_lon)
-starttime_trim = UTCDateTime("2023-09-15T10:34:21")
-endtime_trim = UTCDateTime("2023-09-15T10:34:41")
+starttime_trim = UTCDateTime("2023-09-15T10:32:31")
+endtime_trim = UTCDateTime("2023-09-15T10:37:31")
 station_path = '/home/patrick/Work/Month_report_repo/station.csv'
 
 # create the empty list to accomodate the iterate data
@@ -41,7 +41,7 @@ for station in station_list:
         logging.info(f"Distance to station {station}: {dist} meters")
         st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
         time_sac = st[0].times()
-        data_sac = st[0].data*30 + dist
+        data_sac = st[0].data*1500000 + dist
         sac_data.append(data_sac) # the record of waveform from each station 
         distance_data.append(dist) # the distance between the station and target
         station_data.append(station) # the selected station information    
@@ -67,17 +67,17 @@ for station in station_list:
         only_distance.append(dist) # the distance between the station and target
         station.append(selected_station) # the selected station information
 '''
-#%%
-fig = plt.figure(figsize=(8,20))
+
+fig = plt.figure(figsize=(12,30))
 d_round = np.round(distance_data,1)
 # Plot the valid data
 for data, dist_o in zip(sac_data, distance_data):
     plt.plot(time_sac, data, color='k', linewidth=0.8)
 # plot the label 
 for sl, dl in zip(station_data, d_round):
-    plt.text(time_sac[-1]+0.1, dl, f"{sl}", fontsize=6, verticalalignment='center')
+    plt.text(time_sac[-1]+5, dl, f"{sl}", fontsize=20, verticalalignment='center')
 # plot
-plt.xlim(-1,12)
+plt.xlim(0,300)
 plt.xlabel("Time (s)")
 plt.ylabel("Distance (m)")
 plt.title("Seismic Data vs. Distance")
