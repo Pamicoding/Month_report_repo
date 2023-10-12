@@ -9,13 +9,13 @@ from matplotlib.ticker import FuncFormatter
 from matplotlib import gridspec
 
 # variable
-starttime_trim = UTCDateTime("2023-09-15T10:29:31") # change it
-endtime_trim = UTCDateTime("2023-09-15T10:39:31") # change it
+starttime_trim = UTCDateTime("2023-09-20T12:31:29") # change it
+endtime_trim = UTCDateTime("2023-09-20T12:41:29") # change it
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
-days = 258 # change it
-my_days = '*258*' # change it
-output_dir = '/home/patrick/Work/Mydata'
+days = 263 # change it
+my_days = '*263*' # change it
+output_dir = '/home/patrick/Work/Month_report_repo/event_spectrogram'
 # Create the directory if it doesn't exist
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -52,7 +52,7 @@ for station in station_list:
         # ax1
         ax1.plot(st_time, st_data, linewidth = 0.5, color='k', alpha = 0.6)
         ax1.grid(visible=True, color='lightgray')
-        ax1.set_title( station + str(st_freq[0].stats.starttime), fontsize = 12)
+        ax1.set_title( station, fontsize = 20)
         ax1.set_ylabel('Signal', fontsize=12)
 
 
@@ -80,7 +80,7 @@ for station in station_list:
         # Display the plot0
         filename = f"{station}_{days}_signal.png"
         file_path = os.path.join(output_dir,filename)
-        plt.savefig(file_path, dpi=300)
+        plt.savefig(file_path, dpi=300, bbox_inches = 'tight')
     except IndexError:
         print(f"{station} do not have the data")
 

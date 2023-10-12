@@ -14,13 +14,19 @@ from geopy import distance
 logging.basicConfig(filename='event.log',level=logging.INFO ,filemode='w',)
 # define the variable
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
+output_dir = '/home/patrick/Work/Month_report_repo/event_spectrogram'
+day = '*263*'
+myday = 263
 station_list = os.listdir(parent_dir)
+# Create the directory if it doesn't exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 # event lon, lat 
-evt_lon = 121.83  
-evt_lat = 24.42 
+evt_lon = 121.38
+evt_lat = 22.89
 evt_point = (evt_lat, evt_lon)
-starttime_trim = UTCDateTime("2023-09-15T10:32:31")
-endtime_trim = UTCDateTime("2023-09-15T10:37:31")
+starttime_trim = UTCDateTime("2023-09-20T12:35:29")
+endtime_trim = UTCDateTime("2023-09-20T12:37:29")
 station_path = '/home/patrick/Work/Month_report_repo/station.csv'
 
 # create the empty list to accomodate the iterate data
@@ -30,7 +36,7 @@ station_data = []
 for station in station_list:
     try:
         layer_1 = os.path.join(parent_dir, station)
-        sac_select = glob.glob(os.path.join(layer_1, '*258*')) # the day we want to trim
+        sac_select = glob.glob(os.path.join(layer_1, day)) # the day we want to trim
         st = read(sac_select[0])
         sta_loc = pd.read_csv(station_path)
         selected_station = sta_loc[sta_loc['Station']==station].iloc[0]
@@ -41,7 +47,7 @@ for station in station_list:
         logging.info(f"Distance to station {station}: {dist} meters")
         st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
         time_sac = st[0].times()
-        data_sac = st[0].data*1500000 + dist
+        data_sac = st[0].data*150000000 + dist
         sac_data.append(data_sac) # the record of waveform from each station 
         distance_data.append(dist) # the distance between the station and target
         station_data.append(station) # the selected station information    
@@ -68,22 +74,25 @@ for station in station_list:
         station.append(selected_station) # the selected station information
 '''
 
-fig = plt.figure(figsize=(12,30))
+fig = plt.figure(figsize=(10,50))
 d_round = np.round(distance_data,1)
 # Plot the valid data
 for data, dist_o in zip(sac_data, distance_data):
     plt.plot(time_sac, data, color='k', linewidth=0.8)
 # plot the label 
 for sl, dl in zip(station_data, d_round):
-    plt.text(time_sac[-1]+5, dl, f"{sl}", fontsize=20, verticalalignment='center')
+    plt.text(time_sac[-1]+1, dl, f"{sl}", fontsize=20, verticalalignment='center')
 # plot
-plt.xlim(0,300)
+plt.xlim(0,120)
 plt.xlabel("Time (s)")
 plt.ylabel("Distance (m)")
+#plt.yscale('log')
 plt.title("Seismic Data vs. Distance")
 #plt.legend()
-plt.show()
-plt.savefig('plot.png', dpi=300)
+# Display the plot0
+filename = f"{myday}_signal_dist_b.png"
+file_path = os.path.join(output_dir,filename)
+plt.savefig(file_path, dpi=300, bbox_inches = 'tight')
 
 # %%
 

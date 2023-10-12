@@ -43,7 +43,7 @@ days = 30
 # directory setting
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
-merged_stream = {}
+#merged_stream = {}
 
 # tidy up the data
 for station in station_list:
@@ -60,7 +60,7 @@ for station in station_list:
 
         try:
             st = read(sac_data[0]) # whole day stream
-            st_freq = st.filter("bandpass", freqmin=0.1, freqmax=10) # filter
+            st_freq = st.filter("bandpass", freqmin=0.1, freqmax=45) # filter
             logging.info(f"{st_freq}")
             current_stream += st_freq
             logging.info(f"the data of {day} day of year is merging, thank god")
@@ -71,74 +71,57 @@ for station in station_list:
     current_stream = current_stream.merge(fill_value='interpolate')
     logging.info(f"merging complete")
     
-    #adding the plotting block here to loop
+    # for plotting
+    fig, ax = plt.subplots(figsize=(14,10))
 
-    merged_stream[f"st_all_{station}"] = current_stream
-    logging.info(f"the {station} stream is update in dictionary!")
+    # Create the spectrogram on ax
+    NFFT = 1024*8
+    num_overlap = 512*8
+    cmap = plt.get_cmap('turbo')
+    ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-100)
+    ''' 
+    if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
+    '''
 
+    # Add a colorbar
+    cbar_x = ax.get_position().x1 + 0.01
+    cbar_y = ax.get_position().y0
+    cbar_h = ax.get_position().height
+    cbar = fig.add_axes([cbar_x, cbar_y, 0.02, cbar_h])
+    plt.colorbar(ax.images[0], label='(dB)', cax=cbar)
+
+
+    # Set the label
+    ax.set_title(f"{station}", fontsize = 20)
+    ax.set_xlabel('Date (UTC)', fontsize = 20, labelpad=10)
+    ax.set_ylabel('Frequency (Hz)', fontsize = 20,labelpad=10)
+
+    # Customize the y-axis tick labels to be in scientific notation
+    ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
+    ax.set_ylim(0.5, 50)
+    # about setting the x_label as time
+    start_time = current_stream[0].stats.starttime
+    end_time = start_time + timedelta(days=days)
+    tick_positions = np.arange(0, end_time - start_time, 86400)
+
+    time_label = []
+    current_time = start_time
+    while current_time.month == start_time.month:
+        time_label.append(current_time.strftime('%Y-%m-%d'))
+        current_time += 86400
+        logging.info(f"the {current_time} next")
+
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(time_label, rotation=45, ha = "right")
+    ax.set_yscale('log')
+    mydata_path = '/home/patrick/Work/Month_report_repo/event_spectrogram/'
+    save_path = os.path.join(mydata_path, f"{station}_spectrogram.png")
+    plt.savefig(save_path, dpi=300, bbox_inches = 'tight')
+    plt.show()
+    logging.info(f"save your tears for {station}")
+
+
+    #merged_stream[f"st_all_{station}"] = current_stream
+    #logging.info(f"the {station} stream is update in dictionary!")
 
 #%%
-from matplotlib.ticker import MultipleLocator
-
-sta = 'SM40' # 
-st_plot = merged_stream[f"st_all_{sta}"] 
-# plotting the monthly spectrogram
-# set the axes
-
-fig, ax = plt.subplots(figsize=(14,10))
-from datetime import datetime, timedelta
-# Create the spectrogram on ax
-NFFT = 1024*8
-num_overlap = 512*8
-cmap = plt.get_cmap('turbo')
-ax.specgram(st_plot[0].data, Fs=st_plot[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-100)
-''' 
-if we want to range the colorbar, we can add the parameter vmin, vmax into specgram function.
-'''
-
-# Add a colorbar
-cbar_x = ax.get_position().x1 + 0.01
-cbar_y = ax.get_position().y0
-cbar_h = ax.get_position().height
-cbar = fig.add_axes([cbar_x, cbar_y, 0.02, cbar_h])
-plt.colorbar(ax.images[0], label='(dB)', cax=cbar)
-
-
-# Set the label
-ax.set_title(f"{sta}", fontsize = 20)
-ax.set_xlabel('Date (UTC)', fontsize = 20, labelpad=10)
-ax.set_ylabel('Frequency (Hz)', fontsize = 20,labelpad=10)
-
-# Customize the y-axis tick labels to be in scientific notation
-ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
-ax.set_ylim(0.5, 50)
-# about setting the x_label as time
-start_time = st_plot[0].stats.starttime
-end_time = start_time + timedelta(days=days)
-tick_positions = np.arange(0, end_time - start_time, 86400)
-
-time_label = []
-current_time = start_time
-while current_time.month == start_time.month:
-    time_label.append(current_time.strftime('%Y-%m-%d'))
-    current_time += 86400
-    logging.info(f"the {current_time} next")
-
-ax.set_xticks(tick_positions)
-ax.set_xticklabels(time_label, rotation=45, ha = "right")
-
-#plt.savefig('sm01_august_spectrogram.png')
-
-ax.set_yscale('log')
-# Set minor ticks on the y-axis
-#minor_locator = MultipleLocator(1)  # Minor ticks every 5 units
-#ax.yaxis.set_minor_locator(minor_locator)
-#ax.grid(False))
-mydata_path = '/home/patrick/Work/Month_report_repo/Mydata/'
-save_path = os.path.join(mydata_path, f"{sta}_monthspec_log.png")
-plt.savefig(save_path, dpi=300)
-plt.show()
-logging.info(f"save your tears for another day")
-
-
-# %%
