@@ -60,7 +60,7 @@ for station in station_list:
 
         try:
             st = read(sac_data[0]) # whole day stream
-            st_freq = st.filter("bandpass", freqmin=0.1, freqmax=45) # filter
+            st_freq = st.filter("bandpass", freqmin=0.1, freqmax=50) # filter
             logging.info(f"{st_freq}")
             current_stream += st_freq
             logging.info(f"the data of {day} day of year is merging, thank god")
@@ -98,7 +98,7 @@ for station in station_list:
 
     # Customize the y-axis tick labels to be in scientific notation
     ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
-    ax.set_ylim(0.5, 50)
+    ax.set_ylim(0.1, 50)
     # about setting the x_label as time
     start_time = current_stream[0].stats.starttime
     end_time = start_time + timedelta(days=days)
@@ -114,8 +114,8 @@ for station in station_list:
     ax.set_xticks(tick_positions)
     ax.set_xticklabels(time_label, rotation=45, ha = "right")
     ax.set_yscale('log')
-    mydata_path = '/home/patrick/Work/Month_report_repo/event_spectrogram/'
-    save_path = os.path.join(mydata_path, f"{station}_spectrogram.png")
+    mydata_path = '/home/patrick/Work/Month_report_repo/output_sep/'
+    save_path = os.path.join(mydata_path, f"{station}_spectrogram_01.png")
     plt.savefig(save_path, dpi=300, bbox_inches = 'tight')
     plt.show()
     logging.info(f"save your tears for {station}")

@@ -14,10 +14,12 @@ from geopy import distance
 logging.basicConfig(filename='event.log',level=logging.INFO ,filemode='w',)
 # define the variable
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
-output_dir = '/home/patrick/Work/Month_report_repo/event_spectrogram'
+output_dir = '/home/patrick/Work/Month_report_repo/output_sep'
 day = '*263*'
 myday = 263
-station_list = os.listdir(parent_dir)
+#station_list = os.listdir(parent_dir)
+#station_list = ['SM02','SM06','SM09','SM19','SM39','SM40']
+station_list = ['SM02','SM06','SM09','SM19','SM39']
 # Create the directory if it doesn't exist
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -38,6 +40,7 @@ for station in station_list:
         layer_1 = os.path.join(parent_dir, station)
         sac_select = glob.glob(os.path.join(layer_1, day)) # the day we want to trim
         st = read(sac_select[0])
+        st = st.filter("bandpass", freqmin=0.1, freqmax=20)
         sta_loc = pd.read_csv(station_path)
         selected_station = sta_loc[sta_loc['Station']==station].iloc[0]
         sta_lon = selected_station['Lon']
@@ -47,7 +50,7 @@ for station in station_list:
         logging.info(f"Distance to station {station}: {dist} meters")
         st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
         time_sac = st[0].times()
-        data_sac = st[0].data*150000000 + dist
+        data_sac = st[0].data*300000000 + dist
         sac_data.append(data_sac) # the record of waveform from each station 
         distance_data.append(dist) # the distance between the station and target
         station_data.append(station) # the selected station information    
@@ -90,7 +93,7 @@ plt.ylabel("Distance (m)")
 plt.title("Seismic Data vs. Distance")
 #plt.legend()
 # Display the plot0
-filename = f"{myday}_signal_dist_b.png"
+filename = f"{myday}_signal_dist_1.png"
 file_path = os.path.join(output_dir,filename)
 plt.savefig(file_path, dpi=300, bbox_inches = 'tight')
 
