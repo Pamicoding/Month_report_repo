@@ -5,12 +5,15 @@ from  obspy.imaging.scripts.scan import Scanner
 from obspy import read, UTCDateTime
 
 # variable
-month = 'September'
-starttime = UTCDateTime(2023, 9, 1)
-endtime = UTCDateTime(2023, 9, 30)
+month = 'October'
+starttime = UTCDateTime(2023, 10, 1)
+endtime = UTCDateTime(2023, 10, 31)
 title = f"{month}_data_availability"
-scanner = Scanner()
-for i in glob.glob('/raid1/SM_data/archive/2023/TW/remove_resp/SM*/%s%s%s' %('*', 'EPZ', '*')):
-    scanner.parse(i)
-scanner.plot(starttime=starttime, endtime=endtime, outfile=title, print_gaps=True)
+equip_list = ['EPZ.D','HLZ.D']
+# loop
+for equip in equip_list:
+    scanner = Scanner()
+    for i in glob.glob('/raid1/SM_data/archive/2023/TW/remove_resp/SM*/%s%s%s' %('*', equip, '*')):
+        scanner.parse(i)
+    scanner.plot(starttime=starttime, endtime=endtime, outfile=f'{title}_{equip}.png', print_gaps=True)
 # %%
