@@ -11,11 +11,13 @@ from matplotlib.ticker import FuncFormatter
 from matplotlib import gridspec
 
 # variable
-starttime_trim = UTCDateTime("2023-10-31T12:28:54") # change it
-endtime_trim = UTCDateTime("2023-10-31T12:38:54") # change it
+marker_trim = UTCDateTime("2023-10-29T18:12:36")
+time_window = 300
+starttime_trim = marker_trim - time_window # change it
+endtime_trim = marker_trim + time_window # change it
 parent_dir = '/raid1/SM_data/archive/2023/TW/remove_resp/'
 station_list = os.listdir(parent_dir)
-days = 304 # change it
+days = 302 # change it
 year = 2023
 my_days = f'*{days}*' 
 output_dir = '/home/patrick/Work/Month_report_repo/output/2023_oct' # change it
