@@ -2,4 +2,6 @@
 *.csv
 *.png
 *.log
-output_sep/
+output/
+
+test.py
