@@ -81,9 +81,9 @@ for station in station_list:
         # Create the spectrogram on ax
         NFFT = 1024*8
         num_overlap = 512*8
-        cmap = plt.get_cmap('turbo')
+        cmap = plt.get_cmap('jet')
         if equip == 'EPZ.D':
-            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-100)
+            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-120)
         else:
             ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=50, vmax=250)
         # Add a colorbar
