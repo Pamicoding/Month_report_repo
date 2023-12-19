@@ -1,4 +1,5 @@
 #%%
+# !!! we need to transfer the HLZ acceleration into velocity !!!
 # Module
 import obspy
 from obspy import read, Stream
