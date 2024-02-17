@@ -4,5 +4,5 @@
 *.log
 output/
 quicknote.ipynb
-runall.py
+runall.py 
 test.py
