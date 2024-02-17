@@ -1,4 +1,0 @@
-#%%
-import pygmt
-im
-region = []
