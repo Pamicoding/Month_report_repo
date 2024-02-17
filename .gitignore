@@ -3,6 +3,6 @@
 *.png
 *.log
 output/
-quicknote.ipynb
+note.ipynb
 runall.py 
 test.py
