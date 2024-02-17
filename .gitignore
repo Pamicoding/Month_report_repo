@@ -3,5 +3,6 @@
 *.png
 *.log
 output/
-
+quicknote.ipynb
+runall.py
 test.py
