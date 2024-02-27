@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "month-report-repo"
+version = "0.1.0"
+description = ""
+authors = ["Patrick Yang <patrick.yang880612@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ipykernel = "^6.29.2"
+obspy = "^1.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

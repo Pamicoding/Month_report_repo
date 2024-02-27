@@ -2,7 +2,9 @@
 *.csv
 *.png
 *.log
+.venv/
 output/
 note.ipynb
 runall.py 
 test.py
+poetry.lock
