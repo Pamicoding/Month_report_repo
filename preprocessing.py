@@ -4,6 +4,7 @@ import glob
 import logging
 import argparse
 from argparse import RawDescriptionHelpFormatter
+import multiprocessing
 def format_number(number):
     number_str = str(number)
     num_digits = len(number_str)
@@ -28,113 +29,122 @@ def parse_arguments():
     return args
 
 # preprocessing
-def preprocessing():
+def preprocessing(station):
     args = parse_arguments()
     parent_directory = args.parent_dir
     output_parent_dir = os.path.join(parent_directory,'preprocessing')
     os.makedirs(output_parent_dir, exist_ok=True) # create
     days = range(args.start_day, args.end_day)
-    logging.basicConfig(filename=os.path.join(args.logging_dir,'preprocessing.log'), level=logging.INFO, filemode='w')
-    # station list and azimuth list
-    station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40'] # change it when it's first time.
-    azi_list = ['EPE.D','EPN.D','EPZ.D','HLE.D','HLN.D','HLZ.D'] # change it when it's first time.
+    logging.basicConfig(filename=os.path.join(args.logging_dir,f'preprocessing_{station}.log'), level=logging.INFO, filemode='w')
+    station_path = os.path.join(parent_directory, station) # {parent_dir}/SM02
+    output_station_path = os.path.join(output_parent_dir, station) # {parent_dir}/preprocessing/SM02
+    os.makedirs(output_station_path, exist_ok=True)
+    logging.info(f"we are now in {station}")
 
-    for station in station_list:
-        station_path = os.path.join(parent_directory, station) # {parent_dir}/SM02
-        output_station_path = os.path.join(output_parent_dir, station) # {parent_dir}/preprocessing/SM02
-        os.makedirs(output_station_path, exist_ok=True)
-        logging.info(f"we are now in {station}")
-
-        for azi in azi_list: 
+    for azi in azi_list: 
+        try:
+            logging.info(f"in the {azi}")
+            sub_subdirectory_path = os.path.join(station_path, azi) # {parent_dir}/SM02/EPZ.D
+            output_directory = os.path.join(output_station_path, azi) # {parent_dir}/preprocessing/SM02/EPZ.D
+            os.makedirs(output_directory, exist_ok=True)
+        except Exception as e:
+            logging.info(f"{azi} not found in {station}")
+        for day in days:
             try:
-                logging.info(f"in the {azi}")
-                sub_subdirectory_path = os.path.join(station_path, azi) # {parent_dir}/SM02/EPZ.D
-                output_directory = os.path.join(output_station_path, azi) # {parent_dir}/preprocessing/SM02/EPZ.D
-                os.makedirs(output_directory, exist_ok=True)
+                data_file = glob.glob(os.path.join(sub_subdirectory_path, f'*{format_number(day)}*'))
+                logging.info(f"on the day of year:{format_number(day)}")
+                st = read(data_file[0])
+                # Merge traces within the Stream if there are more than one trace.
+                if len(st) > 1:
+                    st.merge(fill_value='interpolate') # Using interpolate because we don't want the masked array error.
+                # Preprocess the Stream.
+                st.detrend('demean')
+                st.detrend('linear')
+                #st.taper(type='hann', max_percentage=0.05) # optional
+                logging.info(f"{os.path.basename(data_file[0])} detrend are done")
+                output_file = os.path.join(output_directory, os.path.basename(data_file[0]))
+                st.write(output_file, format='SAC')
+                logging.info(f"{os.path.basename(data_file[0])} already saved!")
             except Exception as e:
-                logging.info(f"{azi} not found in {station}")
-            for day in days:
-                try:
-                    data_file = glob.glob(os.path.join(sub_subdirectory_path, f'*{format_number(day)}*'))
-                    logging.info(f"on the day of year:{format_number(day)}")
-                    st = read(data_file[0])
-                    # Merge traces within the Stream if there are more than one trace.
-                    if len(st) > 1:
-                        st.merge(fill_value='interpolate') # Using interpolate because we don't want the masked array error.
-                    # Preprocess the Stream.
-                    st.detrend('demean')
-                    st.detrend('linear')
-                    #st.taper(type='hann', max_percentage=0.05) # optional
-                    logging.info(f"{os.path.basename(data_file[0])} detrend are done")
-                    output_file = os.path.join(output_directory, os.path.basename(data_file[0]))
-                    st.write(output_file, format='SAC')
-                    logging.info(f"{os.path.basename(data_file[0])} already saved!")
-                except Exception as e:
-                    logging.info(f"{e} on {format_number(day)} in {station}_{azi}")
-    logging.info("Preprocessing and saving completed for all directories.")
+                logging.info(f"{e} on {format_number(day)} in {station}_{azi}")
+    logging.info(f"Preprocessing and saving {station} completed for all directories.")
 
 # removing instrument response
-def ins_resp():
+def ins_resp(station):
     args = parse_arguments()
-    logging.basicConfig(filename=os.path.join(args.logging_dir,'response.log'), level=logging.INFO, filemode='w')
+    logging.basicConfig(filename=os.path.join(args.logging_dir,f'response_{station}.log'), level=logging.INFO, filemode='w')
     input_dir = os.path.join(args.parent_dir,'preprocessing')
     output_dir = os.path.join(args.parent_dir,'remove_resp')
     os.makedirs(output_dir, exist_ok=True)
-    station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40'] # change it when it's first time.
-    azimuth_dir = ['EPZ.D','HLZ.D']
     days = range(args.start_day, args.end_day)
-    year = 2024
     # instrument response settings
-    pre_filt = (0.05, 0.1, 50, 60)
-    for sta in station_list:
-        logging.info(f"Processing station: {sta}") 
-        layer_1 = os.path.join(output_dir, sta)
-        os.makedirs(layer_1, exist_ok=True) # {parent_dir}/remove_resp/SM01
-        for azi in azimuth_dir:
-            logging.info(f"Processing azimuth: {azi}")  # Log azimuth processing        
-            sac_data_dir = os.path.join(input_dir, sta, azi) # ./preprocessing/SM01/EPZ.D
-            # different pzs file to remove the instrument response
-            if azi[:2] == 'EP':
-                # EP
-                paz_sts2 = {'poles': [-19.781+20.2027j, -19.781-20.2027j],
-                            'zeros': [0, 0],
-                            'gain': 1.0,
-                            'sensitivity': 546976.0}         
-            else:
-                # HL
-                paz_sts2 = {'poles': [-977+328j, -977-328j,
-                                    -1486+2512j, -1486-2512j,
-                                    -5736+4946j, -5736-4946j],
-                            'zeros': [-515+0j],
-                            'gain': 1.007725E+18,
-                            'sensitivity': 408000.0}
-            for day in days:
-                day_f = format_number(day)
-                day_path = f"{year}.{day_f}"
-                search_pattern = os.path.join(sac_data_dir, f'*{day_path}*')
-                try: 
-                    sac_data = glob.glob(search_pattern) 
+    pre_filt = prefilt
+    logging.info(f"Processing station: {station}") 
+    layer_1 = os.path.join(output_dir, station)
+    os.makedirs(layer_1, exist_ok=True) # {parent_dir}/remove_resp/SM01
+    for azi in azimuth_dir:
+        logging.info(f"Processing azimuth: {azi}")  # Log azimuth processing        
+        sac_data_dir = os.path.join(input_dir, station, azi) # {parent_dir}/preprocessing/SM01/EPZ.D
+        # different pzs file to remove the instrument response
+        if azi[:2] == 'EP':
+            # EP
+            paz_sts2 = paz_EP         
+        else:
+            # HL
+            paz_sts2 = paz_HL
+        for day in days:
+            day_f = format_number(day)
+            day_path = f"{year}.{day_f}"
+            search_pattern = os.path.join(sac_data_dir, f'*{day_path}*')
+            try: 
+                sac_data = glob.glob(search_pattern) 
+            except Exception as e:
+                logging.error(f"Error while searching for files in station {station}, azimuth {azi}: {str(e)}")
+                continue  # Continue with the next azimuth
+            for data in sac_data:
+                try:
+                    st = read(data) 
+                    st.simulate(paz_remove=paz_sts2, pre_filt=pre_filt) # we add the pre_filt to apply a bandpass
+                    # Save the preprocessed data in the output directory
+                    processed_file = os.path.join(layer_1, os.path.basename(data))
+                    st.write(processed_file, format='SAC')
+                    logging.info(f"Processed {data} and saved as {processed_file}")
                 except Exception as e:
-                    logging.error(f"Error while searching for files in station {sta}, azimuth {azi}: {str(e)}")
-                    continue  # Continue with the next azimuth
-                for data in sac_data:
-                    try:
-                        st = read(data) 
-                        st.simulate(paz_remove=paz_sts2, pre_filt=pre_filt) # we add the pre_filt to apply a bandpass
-                        # Save the preprocessed data in the output directory
-                        processed_file = os.path.join(layer_1, os.path.basename(data))
-                        st.write(processed_file, format='SAC')
-                        logging.info(f"Processed {data} and saved as {processed_file}")
-                    except Exception as e:
-                        logging.error(f"Error processing {data}: {str(e)}")
+                    logging.error(f"Error processing {data}: {str(e)}")
     logging.info('done')
 
 
 
 if __name__ == '__main__':
     args = parse_arguments()
-
+    station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40'] # change it when it's first time.
     if args.mode == 'preprocessing':
-        preprocessing()
+        # variable <- customerize it
+        azi_list = ['EPE.D','EPN.D','EPZ.D','HLE.D','HLN.D','HLZ.D'] # change it when it's first time.
+        # main+multiprocessing
+        pool = multiprocessing.Pool(processes=8)
+        pool.map(preprocessing, station_list)
+
+        pool.close()
+        pool.join()
     elif args.mode == 'ins_resp':
-        ins_resp()
+        # variable <- customerize it
+        year = 2024
+        azimuth_dir = ['EPZ.D','HLZ.D']
+        prefilt = (0.05, 0.1, 50, 60)
+        paz_EP = {'poles': [-19.781+20.2027j, -19.781-20.2027j],
+                'zeros': [0, 0],
+                'gain': 1.0*27.7,
+                'sensitivity': 546976.0}
+        paz_HL = {'poles': [-977+328j, -977-328j,
+                            -1486+2512j, -1486-2512j,
+                            -5736+4946j, -5736-4946j],
+                'zeros': [-515+0j],
+                'gain': 1.007725E+18*1.02,
+                'sensitivity': 408000.0}
+        # main
+        pool = multiprocessing.Pool(processes=8)
+        pool.map(ins_resp, station_list)
+
+        pool.close()
+        pool.join()
