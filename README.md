@@ -1,13 +1,13 @@
 # Monthly report
 ## Data preparation    
 * For preprocessing (merge, demean, detrend)      
-'''
+```
 python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --logging_dir=/home/patrick/Work/Month_report_repo/log/ --mode=preprocessing
-'''     
+```     
 * For removing instrument response     
-'''
+```
 python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --logging_dir=/home/patrick/Work/Month_report_repo/log/ --mode=ins_resp
-'''       
+```       
 ## plotting
 ### Seismometer status        
 * seis_status.py    
