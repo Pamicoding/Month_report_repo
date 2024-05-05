@@ -1,11 +1,9 @@
-#%%
 import os
 import glob
 import logging
 import calendar
 import argparse
 from argparse import RawDescriptionHelpFormatter
-import logging
 import multiprocessing
 from datetime import timedelta
 import numpy as np
@@ -36,27 +34,26 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Visualization of condition of instrument.\n\n'
                                      'Example usage:\n'
                                      'For seis_status:\n'
-                                     'python visualization.py --mode=seis_status --month_index=4 --output_parent_dir=/home/patrick/Work/Month_report_repo/output\n\n'
+                                     'python visualization.py --mode=seis_status --month_index=4 --output_parent_dir=/home/patrick/Work/Month_report_repo/ \n\n'
                                      'For PSD: \n'
-                                     'python visualization.py --mode=psd --month_index=4 --start_day=92 --end_day=122 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/output --logging_dir=/home/patrick/Work/Month_report_repo/log/ \n\n'
+                                     'python visualization.py --mode=psd --month_index=4 --start_day=92 --end_day=122 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo \n\n'
                                      'For monthly spectrogram: \n'
-                                     'python visualization.py --mode=spec --month_index=4 --start_day=92 --end_day=122 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/output --logging_dir=/home/patrick/Work/Month_report_repo/log/ \n\n'
+                                     'python visualization.py --mode=spec --month_index=4 --start_day=92 --end_day=122 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo \n\n'
                                      ,formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('-p', '--parent_dir', type=str, default='/raid1/SM_data/archive/2024/TW', help='Path to the parent directory of data.')
-    parser.add_argument('-mm', '--month_index',type=int,default=None,help='a month just passed.')
-    parser.add_argument('-o','--output_parent_dir', type=str,default='/home/patrick/Work/Month_report_repo/output',help='output_parent_dir')
+    parser.add_argument('-m','--mode', type=str, choices=['seis_status','psd','spec','all'], default=None,help='Select the mode.')
+    parser.add_argument('-i', '--month_index',type=int,default=None,help='a month just passed.')
     parser.add_argument('-s', '--start_day', type=int, default=None, help='Starting day of the year')
     parser.add_argument('-e', '--end_day', type=int, default=None, help='Starting day of the year')
-    parser.add_argument('-l','--logging_dir', type=str, default='/home/patrick/Work/Month_report_repo/log/',help='Path of logging directory.')
-    parser.add_argument('-m','--mode', type=str, choices=['seis_status','psd','spec','all'], default=None,help='Select the mode.')
-    args = parser.parse_args
+    parser.add_argument('-p', '--parent_dir', type=str, default='/raid1/SM_data/archive/2024/TW', help='Path to the parent directory of data.')
+    parser.add_argument('-o','--output_parent_dir', type=str,default='/home/patrick/Work/Month_report_repo/',help='output_parent_dir')
+    args = parser.parse_args()
     return args
 
 def seis_status():
     args = parse_arguments()
     month = calendar.month_name[args.month_index]
     month_end = calendar.monthrange(year, args.month_index)[1]
-    output = os.path.join(args.output_parent_dir,f'{year}_{month}')
+    output = os.path.join(args.output_parent_dir,'output',f'{year}_{month}')
     os.makedirs(output, exist_ok=True)
     starttime = UTCDateTime(year, args.month_index, 1)
     endtime = UTCDateTime(year, args.month_index, month_end)
@@ -70,10 +67,10 @@ def seis_status():
 
 def psd(station):
     args = parse_arguments()
-    logging.basicConfig(filename=os.path.join(args.logging_dir, f'psd.log'),level=logging.INFO, filemode='a')
+    logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log', f'psd.log'),level=logging.INFO, filemode='a')
     month = calendar.month_name[args.month_index]
     day_range = range(args.start_day, args.end_day)
-    output = os.path.join(args.output_parent_dir,f"{year}_{month}",'PSD')
+    output = os.path.join(args.output_parent_dir,'output',f"{year}_{month}",'PSD')
     os.makedirs(output, exist_ok=True)
 
     subdirectory_path = os.path.join(args.parent_dir, station) # ./TW/SM01/
@@ -106,10 +103,10 @@ def psd(station):
             # HL
             paz_sts2 = paz_HL
         try:
-            fig, ax = plt.subplots(figsize=(8,6))
+            plt.subplots(figsize=(8,6))
             ppsd = PPSD(current_stream[0].stats, paz_sts2)
             ppsd.add(current_stream)
-            ppsd.plot(filename=f"{output}{station}_{equip[:2]}_psd.png",cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
+            ppsd.plot(filename=os.path.join(output, f"{station}_{equip[:2]}_psd.png"),cmap=obspy.imaging.cm.pqlx, period_lim=(0.5,100), xaxis_frequency=True)
             logging.info(f"{station}_{equip} ppsd finish!")
         except Exception as e:
             logging.info(f"{e} existed in {station}_{equip}")
@@ -117,11 +114,11 @@ def psd(station):
 
 def spec(station):
     args = parse_arguments()
-    logging.basicConfig(filename=os.path.join(args.logging_dir, f'spec.log'),level=logging.INFO, filemode='a')
+    logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log', f'spec.log'),level=logging.INFO, filemode='a')
     month = calendar.month_name[args.month_index]
     day_range = range(args.start_day, args.end_day)
     days = calendar.monthrange(year, args.month_index)[1]
-    mydata_path = os.path.join(args.output_dir,f"{year}_{month}")
+    mydata_path = os.path.join(args.output_parent_dir,'output',f"{year}_{month}")
     station_dir = os.path.join(args.parent_dir,'remove_resp', station) # ./remove_resp/SM01
     for equip in equip_list:
         current_stream = Stream() # initial the stream when changing the station
@@ -146,7 +143,7 @@ def spec(station):
         if equip == 'EPZ.D':
             ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-120)
         else:
-            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=50, vmax=250)
+            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-120)
         # Add a colorbar
         cbar_x = ax.get_position().x1 + 0.01
         cbar_y = ax.get_position().y0
@@ -188,6 +185,8 @@ def spec(station):
 
 if __name__ == '__main__':
     args = parse_arguments()
+    os.makedirs(os.path.join(args.output_parent_dir,'log'),exist_ok=True)
+    print(args)
     year =2024
     equip_list = ['EPZ.D','HLZ.D']
     station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40']
@@ -196,14 +195,14 @@ if __name__ == '__main__':
     elif args.mode == 'psd':
         # variable
         paz_EP = {'poles': [-19.781+20.2027j, -19.781-20.2027j],
-                'zeros': [0, 0],
-                'gain': 1.0*27.7,
+                'zeros': [0, 0, 0], # trans to displacement
+                'gain': 1.0*27.7, # Using A0*INSTGAIN
                 'sensitivity': 546976.0}
         paz_HL = {'poles': [-977+328j, -977-328j,
                             -1486+2512j, -1486-2512j,
                             -5736+4946j, -5736-4946j],
-                'zeros': [-515+0j],
-                'gain': 1.007725E+18*1.02,
+                'zeros': [0, 0, -515+0j], # trans to displacement
+                'gain': 1.007725E+18*1.02, # Using A0*INSTGAIN
                 'sensitivity': 408000.0}
         # main
         pool = multiprocessing.Pool(processes=8)
@@ -212,7 +211,7 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
     
-    elif args.mode == 'month_spec':
+    elif args.mode == 'spec':
         # main
         pool = multiprocessing.Pool(processes=8)
         pool.map(spec, station_list)

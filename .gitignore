@@ -4,6 +4,8 @@
 *.log
 .venv/
 output/
+log/
+previous_code/
 note.ipynb
 runall.py 
 test.py

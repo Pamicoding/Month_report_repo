@@ -16,15 +16,17 @@ def format_number(number):
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Preprocessing seismic data. \n\nExample usage:\n'
                                      'For preprocessing (merge, demean, detrend):\n'
-                                     'python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --logging_dir=/home/patrick/Work/Month_report_repo/log/ --mode=preprocessing\n\n'
+                                     'python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --output_parent_dir=/home/patrick/Work/Month_report_repo/ --mode=preprocessing\n\n'
                                      'For removing instrument response:\n'
-                                     'python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --logging_dir=/home/patrick/Work/Month_report_repo/log/ --mode=ins_resp\n\n',
+                                     'python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --output_parent_dir=/home/patrick/Work/Month_report_repo/ --mode=ins_resp\n\n'
+                                     'All in one:\n'
+                                     'python preprocessing.py --parent_dir=/raid1/SM_data/archive/2024/TW --start_day=92 --end_day=122 --output_parent_dir=/home/patrick/Work/Month_report_repo/ --mode=all\n\n',
                                      formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-p', '--parent_dir', type=str, default='/raid1/SM_data/archive/2024/TW', help='Path to the parent directory of data.')
     parser.add_argument('-s', '--start_day', type=int, default=None, help='Starting day of the year')
     parser.add_argument('-e', '--end_day', type=int, default=None, help='Starting day of the year')
-    parser.add_argument('-l','--logging_dir', type=str, default='/home/patrick/Work/Month_report_repo/log/',help='Path of logging directory.')
-    parser.add_argument('-m','--mode', type=str, choices=['preprocessing','ins_resp'], default=None,help='Select the mode.')
+    parser.add_argument('-o','--output_parent_dir', type=str, default='/home/patrick/Work/Month_report_repo/',help='Path of output parent directory.')
+    parser.add_argument('-m','--mode', type=str, choices=['preprocessing','ins_resp','all'], default=None,help='Select the mode.')
     args = parser.parse_args()
     return args
 
@@ -35,7 +37,7 @@ def preprocessing(station):
     output_parent_dir = os.path.join(parent_directory,'preprocessing')
     os.makedirs(output_parent_dir, exist_ok=True) # create
     days = range(args.start_day, args.end_day)
-    logging.basicConfig(filename=os.path.join(args.logging_dir,f'preprocessing_{station}.log'), level=logging.INFO, filemode='w')
+    logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log',f'preprocessing_{station}.log'), level=logging.INFO, filemode='w')
     station_path = os.path.join(parent_directory, station) # {parent_dir}/SM02
     output_station_path = os.path.join(output_parent_dir, station) # {parent_dir}/preprocessing/SM02
     os.makedirs(output_station_path, exist_ok=True)
@@ -72,7 +74,7 @@ def preprocessing(station):
 # removing instrument response
 def ins_resp(station):
     args = parse_arguments()
-    logging.basicConfig(filename=os.path.join(args.logging_dir,f'response_{station}.log'), level=logging.INFO, filemode='w')
+    logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log',f'response_{station}.log'), level=logging.INFO, filemode='w')
     input_dir = os.path.join(args.parent_dir,'preprocessing')
     output_dir = os.path.join(args.parent_dir,'remove_resp')
     os.makedirs(output_dir, exist_ok=True)
@@ -113,10 +115,53 @@ def ins_resp(station):
                     logging.error(f"Error processing {data}: {str(e)}")
     logging.info('done')
 
-
+def all(station):
+    args = parse_arguments()
+    logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log',f'allin_{station}.log'), level=logging.INFO, filemode='w')
+    station_path = os.path.join(args.parent_dir,station)
+    output_dir = os.path.join(args.parent_dir,'remove_resp')
+    os.makedirs(output_dir, exist_ok=True)
+    days = range(args.start_day, args.end_day)
+    # instrument response settings
+    pre_filt = prefilt
+    logging.info(f"Processing station: {station}") 
+    layer_1 = os.path.join(output_dir, station)
+    os.makedirs(layer_1, exist_ok=True) # {parent_dir}/remove_resp/SM01
+    for azi in azimuth_dir:
+        try:
+            logging.info(f"Processing azimuth: {azi}")  # Log azimuth processing 
+            sub_subdirectory_path = os.path.join(station_path, azi) # {parent_dir}/SM02/EPZ.D
+        except Exception as e:
+            logging.info(f"{azi} not found in {station}")
+        for day in days:
+            try:
+                data_file = glob.glob(os.path.join(sub_subdirectory_path, f'*{format_number(day)}*'))
+                logging.info(f"on the day of year:{format_number(day)}")
+                st = read(data_file[0])
+                # Merge traces within the Stream if there are more than one trace.
+                if len(st) > 1:
+                    st.merge(fill_value='interpolate') # Using interpolate because we don't want the masked array error.
+                # Preprocess the Stream.
+                st.detrend('demean')
+                st.detrend('linear')
+                #st.taper(type='hann', max_percentage=0.05) # optional
+                logging.info(f"{os.path.basename(data_file[0])} detrend are done")
+                if azi[:2] == 'EP':
+                    paz_sts2 = paz_EP         
+                else:
+                    paz_sts2 = paz_HL
+                st.simulate(paz_remove=paz_sts2, pre_filt=pre_filt) # we add the pre_filt to apply a bandpass
+                # Save the preprocessed data in the output directory
+                processed_file = os.path.join(layer_1, os.path.basename(data_file[0]))
+                st.write(processed_file, format='SAC')
+                logging.info(f"Processed {data_file[0]} and saved as {processed_file}")
+            except Exception as e:
+                logging.info(f"{e} on {format_number(day)} in {station}_{azi}")
+    logging.info(f"{station}_{azi} done")
 
 if __name__ == '__main__':
     args = parse_arguments()
+    os.makedirs(os.path.join(args.output_parent_dir,'log'),exist_ok=True)
     station_list = ['SM01','SM02', 'SM06', 'SM09', 'SM19', 'SM37', 'SM39', 'SM40'] # change it when it's first time.
     if args.mode == 'preprocessing':
         # variable <- customerize it
@@ -145,6 +190,27 @@ if __name__ == '__main__':
         # main
         pool = multiprocessing.Pool(processes=8)
         pool.map(ins_resp, station_list)
+
+        pool.close()
+        pool.join()
+    elif args.mode == 'all':
+        # variable <- customerize it
+        year = 2024
+        azimuth_dir = ['EPZ.D','HLZ.D']
+        prefilt = (0.05, 0.1, 50, 60)
+        paz_EP = {'poles': [-19.781+20.2027j, -19.781-20.2027j],
+                'zeros': [0, 0],
+                'gain': 1.0*27.7,
+                'sensitivity': 546976.0}
+        paz_HL = {'poles': [-977+328j, -977-328j,
+                            -1486+2512j, -1486-2512j,
+                            -5736+4946j, -5736-4946j],
+                'zeros': [-515+0j],
+                'gain': 1.007725E+18*1.02,
+                'sensitivity': 408000.0}
+        # main
+        pool = multiprocessing.Pool(processes=8)
+        pool.map(all, station_list)
 
         pool.close()
         pool.join()
