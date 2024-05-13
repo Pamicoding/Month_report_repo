@@ -124,7 +124,7 @@ def wave_dist(equip):
     evt_point = (evt_lat, evt_lon) 
     starttime_trim = event_time - time_window
     endtime_trim = event_time + time_window
-    parent_dir = os.path.join(args.parend_dir,'remove_resp')
+    parent_dir = os.path.join(args.parent_dir,'remove_resp')
     output_dir = os.path.join(args.output_parent_dir,'output', f"{year}_{month}", f"{event_time}")
     os.makedirs(output_dir, exist_ok=True)
     station_path = args.station_location_file
@@ -146,9 +146,12 @@ def wave_dist(equip):
             sta_point = (sta_lat, sta_lon)
             dist = distance.distance(evt_point, sta_point).m
             st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
-            time_sac = st[0].times()
-            data_sac = st[0].data / max(st[0].data)
-            data_sac = data_sac*100 + dist
+            sampling_rate = 1 / st[0].stats.sampling_rate
+            time_sac = np.arange(0,2*time_window+sampling_rate,sampling_rate) # using array to ensure the time length as same as time_window.
+            x_len = len(time_sac)
+            data_sac_raw = st[0].data / max(st[0].data) # normalize the amplitude.
+            data_sac_raw = data_sac_raw*100 + dist # amplify the amplitude. Here we multiply to 100.
+            data_sac = np.pad(data_sac_raw, (0, x_len - len(data_sac_raw)), mode='constant', constant_values=np.nan) # adding the Nan to ensure the data length as same as time window.
             sac_data.append(data_sac)  
             distance_data.append(dist) 
             station_data.append(station) 
@@ -184,9 +187,9 @@ if __name__ == '__main__':
     event_time = UTCDateTime(args.event_time)
     station_list = ['SM01','SM02','SM06','SM09','SM19','SM37','SM39','SM40']
     equip_list = [f'EPZ.D.{year}.{day}',f'HLZ.D.{year}.{day}']
+    time_window_wave_spec = 300
+    time_window_wave_dist = 60
     if args.mode == 'wave_spec':
-        time_window_wave_spec = 300
-
         #main
         pool = multiprocessing.Pool(processes=2)
         pool.map(wave_spec, equip_list)
@@ -194,18 +197,13 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
     if args.mode == 'wave_dist':
-        time_window_wave_dist = 60
-
         #main
         pool = multiprocessing.Pool(processes=2)
-        pool.map(wave_spec, equip_list)
+        pool.map(wave_dist, equip_list)
 
         pool.close()
         pool.join()
     if args.mode == 'all':
-        time_window_wave_spec = 300
-        time_window_wave_dist = 60
-
         # pool for wave_spec
         pool_1 = multiprocessing.Pool(processes=2)
         pool_1.map(wave_spec, equip_list)
@@ -215,7 +213,7 @@ if __name__ == '__main__':
         # pool for wave_list
                 #main
         pool_2 = multiprocessing.Pool(processes=2)
-        pool_2.map(wave_spec, equip_list)
+        pool_2.map(wave_dist, equip_list)
 
         pool_2.close()
         pool_2.join()
