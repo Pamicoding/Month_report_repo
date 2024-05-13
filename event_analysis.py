@@ -34,11 +34,11 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='for event analysis.\n\n'
                                      'Example usage:\n'
                                      'For waveform + spectrogram:\n'
-                                     'python event_analysis.py --mode=wave_spec --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --output_parent_dir=/home/patrick/Work/Month_report_repo/  \n\n'
+                                     'python event_analysis.py --mode=wave_spec --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/  \n\n'
                                      'For waveform arrange by distance: \n'
-                                     'python event_analysis.py --mode=wave_dist --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --output_parent_dir=/home/patrick/Work/Month_report_repo  --station_location_file=/home/patrick/Work/Month_report_repo/station.csv\n\n'
+                                     'python event_analysis.py --mode=wave_dist --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo  --station_location_file=/home/patrick/Work/Month_report_repo/station.csv\n\n'
                                      'For running both: \n'
-                                     'python event_analysis.py --mode=all --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --output_parent_dir=/home/patrick/Work/Month_report_repo  --station_location_file=/home/patrick/Work/Month_report_repo/station.csv\n\n'
+                                     'python event_analysis.py --mode=all --month_index=4 --event_day=94 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo  --station_location_file=/home/patrick/Work/Month_report_repo/station.csv\n\n'
                                      ,formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-m','--mode', type=str, choices=['wave_spec','wave_dist','all'], default='all',help='Select the mode.')
     parser.add_argument('-i', '--month_index',type=int,default=None,help='a month just passed.')

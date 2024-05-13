@@ -119,7 +119,7 @@ options:
 ```
 ### waveform with spectrogram
 ``` 
-python event_analysis.py --mode=wave_spec --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --output_parent_dir=/home/patrick/Work/Month_report_repo/
+python event_analysis.py --mode=wave_spec --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/
 ``` 
 * Creating a event_list for GNU Parallel (change the num of j according to the availibilty of cores)    
 ```
@@ -127,22 +127,22 @@ python event_analysis.py --mode=wave_spec --month_index=4 --event_day=85 --event
 85 2024-03-25T10:13:37 121.56 24.01
 ```   
 ```
-parallel -j5 --colsep ' ' 'python event_analysis.py --mode=wave_spec --month_index=4 --event_day={1} --event_time={2} --output_parent_dir=/home/patrick/Work/Month_report_repo/' :::: event_list
+parallel -j5 --colsep ' ' 'python event_analysis.py --mode=wave_spec --month_index=4 --event_day={1} --event_time={2} --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/' :::: event_list
 ``` 
 ### waveform arranged by distance   
 ==**Preparing the location of station is needed**==
 ``` 
-python event_analysis.py --mode=wave_dist --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv
+python event_analysis.py --mode=wave_dist --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv
 ``` 
 * Creating a event_list for GNU Parallel (change the num of j according to the availibilty of cores) 
 ```
-parallel -j5 --colsep ' ' 'python event_analysis.py --mode=wave_dist --month_index=4 --event_day={1} --event_time={2} --event_lon={3}  --event_lat={4} --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv' :::: event_list
+parallel -j5 --colsep ' ' 'python event_analysis.py --mode=wave_dist --month_index=4 --event_day={1} --event_time={2} --event_lon={3}  --event_lat={4} --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv' :::: event_list
 ```   
 ### generating these two figure above at the same time    
 ``` 
-python event_analysis.py --mode=all --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv
+python event_analysis.py --mode=all --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --event_lon=121.56  --event_lat=24.01 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv
 ``` 
 * Creating a event_list for GNU Parallel (change the num of j according to the availibilty of cores)    
 ```
-parallel -j5 --colsep ' ' 'python event_analysis.py --mode=all --month_index=4 --event_day={1} --event_time={2} --event_lon={3}  --event_lat={4} --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv' :::: event_list
+parallel -j5 --colsep ' ' 'python event_analysis.py --mode=all --month_index=4 --event_day={1} --event_time={2} --event_lon={3}  --event_lat={4} --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/ --station_location_file=/home/patrick/Work/Month_report_repo/station.csv' :::: event_list
 ```
