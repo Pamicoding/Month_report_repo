@@ -162,7 +162,7 @@ def spec(station):
         ax.tick_params(axis='y', which='minor', length = 4, width= 1)
         # Customize the y-axis tick labels to be in scientific notation
         ax.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
-        ax.set_ylim(0.1, 50)
+        ax.set_ylim(0.005, 50)
         # about setting the x_label as time
         start_time = current_stream[0].stats.starttime
         end_time = start_time + timedelta(days=days)
