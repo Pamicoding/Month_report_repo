@@ -118,6 +118,8 @@ options:
                         Path of station location.
 ```
 ### waveform with spectrogram
+**Please check the num of station first, (2,4) grid was configured due to I have 8 station. It's fine if your station < 8,  changing the <span style="color: red;"> line66 </span> if your station > 8**       
+**For a better visualization, some label and color bar ware ignored according to specific index, changing the <span style="color: red;"> line95, 101, 103 </span> for your own dataset**      
 ``` 
 python event_analysis.py --mode=wave_spec --month_index=4 --event_day=85 --event_time=2024-03-25T10:13:37 --parent_dir=/raid1/SM_data/archive/2024/TW --output_parent_dir=/home/patrick/Work/Month_report_repo/
 ``` 
