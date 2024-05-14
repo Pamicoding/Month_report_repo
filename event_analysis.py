@@ -108,8 +108,8 @@ def wave_spec(equip):
             # Customize the y-axis tick labels to be in scientific notation
             ax2.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
             plt.subplots_adjust(wspace=0.3, hspace=0.3)       
-        except IndexError:
-            logging.info(f"{equip}_{station} do not have the data")
+        except Exception as e:
+            logging.info(f"{equip}_{station} has the issue {e}")
     filename = f"wavespec_{equip[:3]}.png"
     file_path = os.path.join(output_dir,filename)
     plt.savefig(file_path, dpi=300, bbox_inches = 'tight')
