@@ -58,14 +58,14 @@ def wave_spec(equip):
     logging.basicConfig(filename=os.path.join(args.output_parent_dir,'log','wave_spec.log'),level=logging.INFO, filemode='a') 
     starttime_trim = event_time - time_window 
     endtime_trim = event_time + time_window 
-    parent_dir = args.parent_dir 
+    parent_dir = os.path.join(args.parent_dir, 'remove_resp') 
     output_dir = os.path.join(args.output_parent_dir,'output', f"{year}_{month}", f"{event_time}")
     os.makedirs(output_dir,exist_ok=True)
 
     fig = plt.figure(figsize=(15,8))
     outer_gs = gridspec.GridSpec(2, 4, figure=fig)
     for i, station in enumerate(station_list):
-        layer_1 = os.path.join(parent_dir,'remove_resp',station,f'*{equip}*')
+        layer_1 = os.path.join(parent_dir,station,f'*{equip}*')
         try:
             data_path = glob.glob(layer_1)[0]
             st = read(data_path)
@@ -133,10 +133,10 @@ def wave_dist(equip):
     distance_data = []
     station_data = []
     for station in station_list:
-        layer_1 = os.path.join(parent_dir, station) 
-        sac_select = glob.glob(os.path.join(layer_1, f'*{equip}*')) 
+        layer_1 = os.path.join(parent_dir, station,f'*{equip}*')  
         try:
-            st = read(sac_select[0])
+            data_path = glob.glob(layer_1)[0]
+            st = read(data_path[0])
             st.taper(type='hann', max_percentage=0.05)
             st.filter("bandpass", freqmin=0.1, freqmax=10)
             sta_loc = pd.read_csv(station_path)
