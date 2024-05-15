@@ -133,9 +133,9 @@ def wave_dist(equip):
     distance_data = []
     station_data = []
     for station in station_list:
-        layer_1 = os.path.join(parent_dir, station,f'*{equip}*')  
+        layer_1 = os.path.join(parent_dir, station,f'*{equip}*')
+        data_path = glob.glob(layer_1) 
         try:
-            data_path = glob.glob(layer_1)[0]
             st = read(data_path[0])
             st.taper(type='hann', max_percentage=0.05)
             st.filter("bandpass", freqmin=0.1, freqmax=10)
