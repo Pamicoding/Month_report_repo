@@ -90,7 +90,13 @@ def wave_spec(equip):
             # ax2
             NFFT = 256
             cmap = plt.get_cmap('turbo')
-            im = ax2.specgram(st[0].data, Fs=st[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap)
+            st = read(data_path)
+            st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
+            st.taper(type='hann', max_percentage=0.05)
+            st.filter("bandpass", freqmin=0.1, freqmax=40)
+            st_time = st[0].times() # Times
+            st_data = st[0].data # the signal
+            im = ax2.specgram(st_data, Fs=st[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-250, vmax=-100)
             # For simplifying the output, we only plot color bar and label in specific grid location. 
             if i not in [0, 1, 2, 4, 5, 6]:
                 # Add a colorbar
@@ -104,7 +110,7 @@ def wave_spec(equip):
                 ax2.set_ylabel('Frequency (Hz)', fontsize = 12)
             ax2.set_yscale('log')
             ax2.set_xlim(0,time_window*2)
-            ax2.set_ylim(0.1, 10)
+            ax2.set_ylim(0.1, 50)
             # Customize the y-axis tick labels to be in scientific notation
             ax2.yaxis.set_major_formatter(FuncFormatter(scientific_formatter))
             plt.subplots_adjust(wspace=0.3, hspace=0.3)       
@@ -150,7 +156,7 @@ def wave_dist(equip):
             time_sac = np.arange(0,2*time_window+sampling_rate,sampling_rate) # using array to ensure the time length as same as time_window.
             x_len = len(time_sac)
             data_sac_raw = st[0].data / max(st[0].data) # normalize the amplitude.
-            data_sac_raw = data_sac_raw*100 + dist # amplify the amplitude. Here we multiply to 100.
+            data_sac_raw = data_sac_raw*200 + dist # amplify the amplitude. Here we multiply to 100.
             data_sac = np.pad(data_sac_raw, (0, x_len - len(data_sac_raw)), mode='constant', constant_values=np.nan) # adding the Nan to ensure the data length as same as time window.
             sac_data.append(data_sac)  
             distance_data.append(dist) 
