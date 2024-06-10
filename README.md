@@ -79,7 +79,7 @@ options:
 ```     
 ### Checking the ability of data recording     
 ```
-python visualization.py --mode=seis_status --month_index=4 --output_parent_dir=/home/patrick/Work/Month_report_repo/output
+python visualization.py --mode=seis_status --month_index=4 --output_parent_dir=/home/patrick/Work/Month_report_repo/
 ```
 ### PSD
 ==Using the data **without removing instrument response** and merge them as monthly data.==       
