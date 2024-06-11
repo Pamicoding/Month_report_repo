@@ -141,9 +141,9 @@ def spec(station):
         num_overlap = 512*8
         cmap = plt.get_cmap('jet')
         if equip == 'EPZ.D':
-            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-120)
+            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-100)
         else:
-            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-120)
+            ax.specgram(current_stream[0].data, Fs=current_stream[0].stats.sampling_rate, NFFT=NFFT, noverlap=num_overlap, cmap=cmap, vmin=-250, vmax=-100)
         # Add a colorbar
         cbar_x = ax.get_position().x1 + 0.01
         cbar_y = ax.get_position().y0

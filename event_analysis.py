@@ -71,7 +71,7 @@ def wave_spec(equip):
             st = read(data_path)
             st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
             st.taper(type='hann', max_percentage=0.05)
-            st.filter("bandpass", freqmin=0.1, freqmax=10)
+            st.filter("bandpass", freqmin=1, freqmax=10)
             st_time = st[0].times() # Times
             st_data = st[0].data # the signal
             # set the axes
@@ -92,8 +92,6 @@ def wave_spec(equip):
             cmap = plt.get_cmap('turbo')
             st = read(data_path)
             st[0].trim(starttime=starttime_trim, endtime=endtime_trim)
-            st.taper(type='hann', max_percentage=0.05)
-            st.filter("bandpass", freqmin=0.1, freqmax=40)
             st_time = st[0].times() # Times
             st_data = st[0].data # the signal
             im = ax2.specgram(st_data, Fs=st[0].stats.sampling_rate, NFFT=NFFT, cmap=cmap, vmin=-250, vmax=-100)
@@ -144,7 +142,7 @@ def wave_dist(equip):
         try:
             st = read(data_path[0])
             st.taper(type='hann', max_percentage=0.05)
-            st.filter("bandpass", freqmin=0.1, freqmax=10)
+            st.filter("bandpass", freqmin=1, freqmax=10)
             sta_loc = pd.read_csv(station_path)
             selected_station = sta_loc[sta_loc['Station']==station].iloc[0]
             sta_lon = selected_station['Lon']
@@ -178,7 +176,7 @@ def wave_dist(equip):
     plt.tick_params(axis='x', which='major', length=6, width=2)
     plt.tick_params(axis='x', which='minor', length=4, width=1)
     plt.xlabel("Time (s)", fontsize = 25)
-    plt.title(f"{event_time}_{equip},\ntime window=±{time_window}s, bandpass: 0.1-10 Hz", fontsize = 25)
+    plt.title(f"{event_time}_{equip},\ntime window=±{time_window}s, bandpass: 1-10 Hz", fontsize = 25)
     filename = f"{equip[:3]}_signal_dist.png"
     file_path = os.path.join(output_dir,filename) 
     plt.savefig(file_path, dpi=300, bbox_inches = 'tight')
